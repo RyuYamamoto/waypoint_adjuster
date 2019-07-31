@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+	<node name="waypoint_editor_node" pkg="waypoint_editor" type="waypoint_editor_node" output="screen">
+		<param name="waypoint_filename" value="$(find waypoint_editor)/config/saved_waypoints.csv" />
+		<param name="marker_topic_name" value="/wayponit_adjust" />
+		<param name="save_timeout" value="30" />
+		<param name="save_after_delay" value="3" />
+	</node>
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find waypoint_editor)/config/waypoint_editor.rviz"/>
+</launch>

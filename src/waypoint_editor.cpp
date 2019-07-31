@@ -1,4 +1,4 @@
-#include <waypoint_adjuster/waypoint_adjuster.hpp>
+#include <waypoint_editor/waypoint_editor.hpp>
 
 namespace waypoint_marker
 {
@@ -6,7 +6,7 @@ namespace waypoint_marker
 const char *row[] = {"x","y","z","yaw","velocity","change_flag"};
 
 
-WaypointAdjuster::WaypointAdjuster(ros::NodeHandle nh)
+WaypointEditor::WaypointEditor(ros::NodeHandle nh)
 	: _nh(nh),
 	  old_timestamp(ros::Time::now()),
 	  _changed_waypoint(false)
@@ -19,11 +19,11 @@ WaypointAdjuster::WaypointAdjuster(ros::NodeHandle nh)
 
 	_waypoint_marker_pub = _nh.advertise<visualization_msgs::MarkerArray>("/waypoint_adjust", 10, true);
 	
-	boost::thread auto_save_thread(boost::bind(&WaypointAdjuster::auto_save_time_thread, this));
-	boost::thread publish_waypoint_thread(boost::bind(&WaypointAdjuster::publish_waypoint_server_thread, this));
+	boost::thread auto_save_thread(boost::bind(&WaypointEditor::auto_save_time_thread, this));
+	boost::thread publish_waypoint_thread(boost::bind(&WaypointEditor::publish_waypoint_server_thread, this));
 }
 
-void WaypointAdjuster::process_feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
+void WaypointEditor::process_feedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
 	switch (feedback->event_type)
 	{
@@ -47,7 +47,7 @@ void WaypointAdjuster::process_feedback(const visualization_msgs::InteractiveMar
 	}
 }
 
-std::vector<geometry_msgs::Pose> WaypointAdjuster::parse_waypoint()
+std::vector<geometry_msgs::Pose> WaypointEditor::parse_waypoint()
 {
 	std::vector<geometry_msgs::Pose> waypoint_list;
 	std::ifstream ifs(_waypoint_filename.c_str());
@@ -83,11 +83,11 @@ std::vector<geometry_msgs::Pose> WaypointAdjuster::parse_waypoint()
 	return waypoint_list;
 }
 
-void WaypointAdjuster::save_waypoint(ros::Time timestamp)
+void WaypointEditor::save_waypoint(ros::Time timestamp)
 {
 	ROS_INFO("saved waypoint.");
 
-	std::string package_path = ros::package::getPath("waypoint_adjuster");
+	std::string package_path = ros::package::getPath("waypoint_editor");
 	std::string filename = "/config/saved_waypoints_update.csv";
 	std::ofstream output_file;
 	output_file.open(package_path+filename, std::ios::out);
@@ -112,7 +112,7 @@ void WaypointAdjuster::save_waypoint(ros::Time timestamp)
 	old_timestamp = timestamp;
 }
 
-void WaypointAdjuster::publish_waypoint_server_thread()
+void WaypointEditor::publish_waypoint_server_thread()
 {
 	server.reset(new interactive_markers::InteractiveMarkerServer("interactive_tf"));
 	waypoint_list = parse_waypoint();
@@ -121,7 +121,7 @@ void WaypointAdjuster::publish_waypoint_server_thread()
 	server->applyChanges();
 }
 
-void WaypointAdjuster::auto_save_time_thread()
+void WaypointEditor::auto_save_time_thread()
 {
 	ros::Rate rate(1);
 	while(1)
@@ -138,7 +138,7 @@ void WaypointAdjuster::auto_save_time_thread()
 	}
 }
 
-void WaypointAdjuster::display_waypoint(std::vector<geometry_msgs::Pose> waypoint_list)
+void WaypointEditor::display_waypoint(std::vector<geometry_msgs::Pose> waypoint_list)
 {
 	visualization_msgs::MarkerArray marker_list;
 	visualization_msgs::Marker marker;
@@ -170,7 +170,7 @@ void WaypointAdjuster::display_waypoint(std::vector<geometry_msgs::Pose> waypoin
 	_waypoint_marker_pub.publish(marker_list);
 }
 
-void WaypointAdjuster::display_waypoint_handler(std::vector<geometry_msgs::Pose> waypoint_list)
+void WaypointEditor::display_waypoint_handler(std::vector<geometry_msgs::Pose> waypoint_list)
 {
 	for(std::size_t index=0;index<waypoint_list.size();index++)
 	{
@@ -210,7 +210,7 @@ void WaypointAdjuster::display_waypoint_handler(std::vector<geometry_msgs::Pose>
 		marker.controls.push_back(control);
 
 		server->insert(marker);
-		server->setCallback(marker.name, boost::bind(&WaypointAdjuster::process_feedback, this, _1));
+		server->setCallback(marker.name, boost::bind(&WaypointEditor::process_feedback, this, _1));
 	}
 }
 
