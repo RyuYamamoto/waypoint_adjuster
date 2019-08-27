@@ -1,3 +1,6 @@
+#ifndef _WAYOINT_EDITOR_H_
+#define _WAYOINT_EDITOR_H_
+
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -45,3 +48,5 @@ class WaypointAdjuster
 		bool _changed_waypoint;
 };
 }
+
+#endif
